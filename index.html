@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>TECH TONIC 2K26 - Gate Scanner</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Poppins:wght@300;400;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    :root {
+      --gold: #d4af37;
+      --dark: #0a0a0a;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      min-height: 100dvh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Animated gradient background */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+        linear-gradient(135deg, #030305 0%, #0a0a12 25%, #0d0b14 50%, #0a0a0f 75%, #050507 100%);
+      z-index: -2;
+      animation: bgShift 20s ease-in-out infinite alternate;
+    }
+
+    @keyframes bgShift {
+      0% {
+        background-position: 0% 0%, 100% 0%, 50% 100%, 0% 0%;
+      }
+
+      100% {
+        background-position: 100% 100%, 0% 100%, 50% 0%, 100% 100%;
+      }
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #111 0%, #0a0a0a 100%);
+      border-bottom: 2px solid var(--gold);
+      padding: 18px 20px 14px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(14px, 4vw, 22px);
+      color: var(--gold);
+      letter-spacing: 2px;
+      margin-bottom: 3px;
+    }
+
+    .header .sub {
+      font-size: 11px;
+      color: #888;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── Stats Row ── */
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      padding: 15px;
+    }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(212, 175, 55, 0.15);
+      border-radius: 14px;
+      padding: 14px 22px;
+      text-align: center;
+      min-width: 110px;
+    }
+
+    .stat-box .num {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .stat-box .lbl {
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 3px;
+    }
+
+    /* ── Scanner Area ── */
+    .scanner-wrapper {
+      padding: 0 15px;
+      margin-bottom: 15px;
+    }
+
+    .scanner-frame {
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px solid rgba(212, 175, 55, 0.2);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    #reader {
+      width: 100%;
+      min-height: 280px;
+    }
+
+    /* Override html5-qrcode default styles */
+    #reader video {
+      border-radius: 18px;
+    }
+
+    #reader__scan_region {
+      border-radius: 18px;
+    }
+
+    #reader__dashboard {
+      background: transparent !important;
+    }
+
+    #reader__dashboard_section {
+      color: #aaa !important;
+    }
+
+    #reader__dashboard_section_csr button,
+    #reader__dashboard_section_fsr button {
+      background: var(--gold) !important;
+      color: #000 !important;
+      border: none !important;
+      border-radius: 10px !important;
+      padding: 10px 20px !important;
+      font-family: 'Poppins', sans-serif !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+    }
+
+    #reader__dashboard_section_csr select,
+    #reader__dashboard_section_fsr select {
+      background: #1a1a1a !important;
+      color: #fff !important;
+      border: 1px solid rgba(212, 175, 55, 0.3) !important;
+      border-radius: 8px !important;
+      padding: 8px !important;
+      font-family: 'Poppins', sans-serif !important;
+    }
+
+    #reader__dashboard_section_csr span,
+    #reader__dashboard_section_fsr span {
+      color: #aaa !important;
+    }
+
+    /* ── Result Display ── */
+    .result-area {
+      padding: 0 15px 25px;
+    }
+
+    .result-card {
+      border-radius: 18px;
+      padding: 25px;
+      text-align: center;
+      transition: all 0.4s ease;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .result-card.waiting {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    .result-card.valid {
+      background: rgba(34, 197, 94, 0.1);
+      border: 2px solid #22c55e;
+      animation: pulseGreen 1s ease;
+    }
+
+    .result-card.invalid {
+      background: rgba(239, 68, 68, 0.1);
+      border: 2px solid #ef4444;
+      animation: pulseRed 0.5s ease;
+    }
+
+    .result-card.already {
+      background: rgba(245, 158, 11, 0.1);
+      border: 2px solid #f59e0b;
+      animation: pulseOrange 0.5s ease;
+    }
+
+    .result-icon {
+      font-size: 48px;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+
+    .result-text {
+      font-size: clamp(18px, 5vw, 26px);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .result-sub {
+      font-size: 13px;
+      color: #888;
+      margin-top: 6px;
+    }
+
+    .result-card.valid .result-text {
+      color: #22c55e;
+    }
+
+    .result-card.invalid .result-text {
+      color: #ef4444;
+    }
+
+    .result-card.already .result-text {
+      color: #f59e0b;
+    }
+
+    .result-card.waiting .result-text {
+      color: #555;
+    }
+
+    .result-card.waiting .result-icon {
+      opacity: 0.3;
+    }
+
+    /* ── Animations ── */
+    @keyframes pulseGreen {
+      0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+      }
+
+      70% {
+        box-shadow: 0 0 0 20px rgba(34, 197, 94, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+      }
+    }
+
+    @keyframes pulseRed {
+      0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
+      }
+
+      70% {
+        box-shadow: 0 0 0 20px rgba(239, 68, 68, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+      }
+    }
+
+    @keyframes pulseOrange {
+      0% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
+      }
+
+      70% {
+        box-shadow: 0 0 0 20px rgba(245, 158, 11, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+      }
+    }
+
+    /* ── Scan History ── */
+    .history-section {
+      padding: 0 15px 30px;
+    }
+
+    .history-title {
+      font-size: 13px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      padding-left: 5px;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    .history-item .id {
+      color: #aaa;
+      font-family: monospace;
+    }
+
+    .history-item .status-valid {
+      color: #22c55e;
+      font-weight: 600;
+    }
+
+    .history-item .status-invalid {
+      color: #ef4444;
+      font-weight: 600;
+    }
+
+    .history-item .status-already {
+      color: #f59e0b;
+      font-weight: 600;
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 480px) {
+      .header {
+        padding: 12px 15px 10px;
+      }
+
+      .header h1 {
+        font-size: clamp(12px, 3.5vw, 18px);
+      }
+
+      .stats-row {
+        padding: 10px 12px;
+        gap: 10px;
+      }
+
+      .stat-box {
+        padding: 10px 15px;
+        min-width: 90px;
+        border-radius: 12px;
+      }
+
+      .stat-box .num {
+        font-size: 24px;
+      }
+
+      .scanner-wrapper {
+        padding: 0 12px;
+      }
+
+      .scanner-frame {
+        border-radius: 16px;
+      }
+
+      #reader {
+        min-height: 250px;
+      }
+
+      #reader__dashboard_section_csr button,
+      #reader__dashboard_section_fsr button {
+        padding: 8px 16px !important;
+        font-size: 13px !important;
+      }
+
+      #reader__dashboard_section_csr select,
+      #reader__dashboard_section_fsr select {
+        padding: 6px !important;
+        font-size: 13px !important;
+      }
+
+      .result-area {
+        padding: 0 12px 20px;
+      }
+
+      .result-card {
+        padding: 18px 14px;
+        border-radius: 14px;
+      }
+
+      .result-icon {
+        font-size: 38px;
+      }
+
+      .result-text {
+        font-size: clamp(16px, 4.5vw, 22px);
+      }
+
+      .result-sub {
+        font-size: 11px;
+      }
+
+      .history-section {
+        padding: 0 12px 25px;
+      }
+
+      .history-item {
+        padding: 8px 12px;
+        font-size: 11px;
+      }
+
+      .history-item .id {
+        font-size: 10px;
+        max-width: 55%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .header h1 {
+        font-size: 12px;
+      }
+
+      .stat-box {
+        min-width: 80px;
+        padding: 8px 12px;
+      }
+
+      .stat-box .num {
+        font-size: 20px;
+      }
+
+      #reader {
+        min-height: 220px;
+      }
+
+      .result-icon {
+        font-size: 32px;
+      }
+
+      .result-text {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>TECH TONIC 2K26</h1>
+    <div class="sub">🔒 Gate Entry Scanner</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="num" id="entryCount">0</div>
+      <div class="lbl">Entered</div>
+    </div>
+    <div class="stat-box">
+      <div class="num" id="scanCount">0</div>
+      <div class="lbl">Scanned</div>
+    </div>
+  </div>
+
+  <!-- Scanner -->
+  <div class="scanner-wrapper">
+    <div class="scanner-frame">
+      <div id="reader"></div>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="result-area">
+    <div class="result-card waiting" id="resultCard">
+      <div class="result-icon">📷</div>
+      <div class="result-text" id="resultText">Waiting for Scan...</div>
+      <div class="result-sub" id="resultSub">Point the camera at a QR code</div>
+    </div>
+  </div>
+
+  <!-- Scan History -->
+  <div class="history-section">
+    <div class="history-title">Recent Scans</div>
+    <div class="history-list" id="historyList">
+      <div class="history-item" style="color:#555;justify-content:center;">No scans yet</div>
+    </div>
+  </div>
+
+  <script>
+
+    const webAppURL = "https://script.google.com/macros/s/AKfycbwaoKsR6Fpm7y5nepY9LYJVioV-Zp9FORtztmE63sU24BueUVI1O1AuuCUlla8Ne5_pfA/exec";
+
+    let scanTotal = 0;
+    let lastScannedId = "";
+    let lastScanTime = 0;
+
+    /* ── Vibrate ── */
+    function vibrate(type) {
+      if (navigator.vibrate) {
+        if (type === "valid") navigator.vibrate([100, 50, 100]);
+        else navigator.vibrate([300, 100, 300]);
+      }
+    }
+
+    /* ── Play Sound ── */
+    function playBeep(type) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        gain.gain.value = 0.3;
+        if (type === "valid") {
+          osc.frequency.value = 800;
+          osc.start(); osc.stop(ctx.currentTime + 0.15);
+        } else {
+          osc.frequency.value = 300;
+          osc.start(); osc.stop(ctx.currentTime + 0.4);
+        }
+      } catch (e) { }
+    }
+
+    /* ── Add to History ── */
+    function addHistory(id, status) {
+      const list = document.getElementById("historyList");
+      // Clear "no scans" placeholder
+      if (list.querySelector("[style]")) list.innerHTML = "";
+
+      const statusClass = status === "VALID" ? "status-valid"
+        : status === "ALREADY_ENTERED" ? "status-already" : "status-invalid";
+
+      const statusLabel = status === "VALID" ? "✅ VALID"
+        : status === "ALREADY_ENTERED" ? "⚠ DUPLICATE"
+          : status === "NOT_APPROVED" ? "🔒 NOT APPROVED" : "❌ INVALID";
+
+      const item = document.createElement("div");
+      item.className = "history-item";
+      item.innerHTML = `<span class="id">${id}</span><span class="${statusClass}">${statusLabel}</span>`;
+      list.prepend(item);
+
+      // Keep only last 20
+      while (list.children.length > 20) list.removeChild(list.lastChild);
+    }
+
+    /* ── On Scan ── */
+    function onScanSuccess(decodedText) {
+
+      // Prevent duplicate rapid scans of same QR
+      const now = Date.now();
+      if (decodedText === lastScannedId && (now - lastScanTime) < 3000) return;
+      lastScannedId = decodedText;
+      lastScanTime = now;
+
+      scanTotal++;
+      document.getElementById("scanCount").textContent = scanTotal;
+
+      const card = document.getElementById("resultCard");
+      const text = document.getElementById("resultText");
+      const sub = document.getElementById("resultSub");
+      const icon = document.querySelector(".result-icon");
+
+      // Show loading state
+      card.className = "result-card waiting";
+      icon.textContent = "⏳";
+      text.textContent = "Verifying...";
+      sub.textContent = decodedText;
+
+      fetch(webAppURL + "?id=" + decodedText)
+        .then(res => res.json())
+        .then(data => {
+
+          document.getElementById("entryCount").textContent = data.count;
+
+          if (data.status === "VALID") {
+            card.className = "result-card valid";
+            icon.textContent = "✅";
+            text.textContent = "VALID ENTRY";
+            sub.textContent = "Welcome! — " + decodedText;
+            vibrate("valid");
+            playBeep("valid");
+          }
+          else if (data.status === "ALREADY_ENTERED") {
+            card.className = "result-card already";
+            icon.textContent = "⚠️";
+            text.textContent = "ALREADY ENTERED";
+            sub.textContent = "This participant has already entered";
+            vibrate("invalid");
+            playBeep("invalid");
+          }
+          else if (data.status === "NOT_APPROVED") {
+            card.className = "result-card invalid";
+            icon.textContent = "🔒";
+            text.textContent = "NOT APPROVED";
+            sub.textContent = "Payment not yet verified";
+            vibrate("invalid");
+            playBeep("invalid");
+          }
+          else {
+            card.className = "result-card invalid";
+            icon.textContent = "❌";
+            text.textContent = "INVALID QR CODE";
+            sub.textContent = "This QR is not recognized";
+            vibrate("invalid");
+            playBeep("invalid");
+          }
+
+          addHistory(decodedText, data.status);
+
+          // Auto-reset after 4 seconds
+          setTimeout(() => {
+            card.className = "result-card waiting";
+            icon.textContent = "📷";
+            text.textContent = "Ready to Scan";
+            sub.textContent = "Point the camera at a QR code";
+          }, 4000);
+
+        })
+        .catch(() => {
+          card.className = "result-card invalid";
+          icon.textContent = "⚡";
+          text.textContent = "CONNECTION ERROR";
+          sub.textContent = "Check your internet connection";
+        });
+    }
+
+    /* ── Initialize Scanner ── */
+    const scanner = new Html5QrcodeScanner(
+      "reader",
+      {
+        fps: 10,
+        qrbox: { width: 220, height: 220 },
+        rememberLastUsedCamera: true,
+        showTorchButtonIfSupported: true
+      },
+      false
+    );
+
+    scanner.render(onScanSuccess);
+
+  </script>
+
+</body>
+
+</html>
