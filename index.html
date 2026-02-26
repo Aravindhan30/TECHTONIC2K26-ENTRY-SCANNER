@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=no">
   <title>TECH TONIC 2K26 - Gate Scanner</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Poppins:wght@300;400;600;700&display=swap"
@@ -30,9 +30,10 @@
       min-height: 100dvh;
       position: relative;
       overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
 
-    /* Animated gradient background */
     body::before {
       content: "";
       position: fixed;
@@ -59,7 +60,6 @@
       }
     }
 
-    /* ── Header ── */
     .header {
       background: linear-gradient(135deg, #111 0%, #0a0a0a 100%);
       border-bottom: 2px solid var(--gold);
@@ -85,7 +85,6 @@
       text-transform: uppercase;
     }
 
-    /* ── Stats Row ── */
     .stats-row {
       display: flex;
       justify-content: center;
@@ -117,7 +116,6 @@
       margin-top: 3px;
     }
 
-    /* ── Scanner Area ── */
     .scanner-wrapper {
       padding: 0 15px;
       margin-bottom: 15px;
@@ -136,7 +134,6 @@
       min-height: 280px;
     }
 
-    /* Override html5-qrcode default styles */
     #reader video {
       border-radius: 18px;
     }
@@ -180,7 +177,6 @@
       color: #aaa !important;
     }
 
-    /* ── Result Display ── */
     .result-area {
       padding: 0 15px 25px;
     }
@@ -258,7 +254,6 @@
       opacity: 0.3;
     }
 
-    /* ── Animations ── */
     @keyframes pulseGreen {
       0% {
         box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
@@ -301,7 +296,6 @@
       }
     }
 
-    /* ── Scan History ── */
     .history-section {
       padding: 0 15px 30px;
     }
@@ -353,7 +347,50 @@
       font-weight: 600;
     }
 
-    /* ── Mobile ── */
+    /* Desktop / Laptop layout */
+    @media (min-width: 768px) {
+      .scanner-wrapper {
+        max-width: 500px;
+        margin: 0 auto 15px;
+      }
+
+      .main-content {
+        display: flex;
+        gap: 20px;
+        padding: 0 20px;
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .main-content .result-area {
+        flex: 1;
+        padding: 0;
+      }
+
+      .main-content .history-section {
+        flex: 1;
+        padding: 0;
+      }
+
+      .stats-row {
+        gap: 20px;
+      }
+
+      .stat-box {
+        min-width: 140px;
+        padding: 18px 28px;
+      }
+
+      .stat-box .num {
+        font-size: 36px;
+      }
+
+      #reader {
+        min-height: 350px;
+      }
+    }
+
+    /* Mobile */
     @media (max-width: 480px) {
       .header {
         padding: 12px 15px 10px;
@@ -472,13 +509,11 @@
 
 <body>
 
-  <!-- Header -->
   <div class="header">
     <h1>TECH TONIC 2K26</h1>
     <div class="sub">🔒 Gate Entry Scanner</div>
   </div>
 
-  <!-- Stats -->
   <div class="stats-row">
     <div class="stat-box">
       <div class="num" id="entryCount">0</div>
@@ -490,27 +525,26 @@
     </div>
   </div>
 
-  <!-- Scanner -->
   <div class="scanner-wrapper">
     <div class="scanner-frame">
       <div id="reader"></div>
     </div>
   </div>
 
-  <!-- Result -->
-  <div class="result-area">
-    <div class="result-card waiting" id="resultCard">
-      <div class="result-icon">📷</div>
-      <div class="result-text" id="resultText">Waiting for Scan...</div>
-      <div class="result-sub" id="resultSub">Point the camera at a QR code</div>
+  <div class="main-content">
+    <div class="result-area">
+      <div class="result-card waiting" id="resultCard">
+        <div class="result-icon">📷</div>
+        <div class="result-text" id="resultText">Waiting for Scan...</div>
+        <div class="result-sub" id="resultSub">Point the camera at a QR code</div>
+      </div>
     </div>
-  </div>
 
-  <!-- Scan History -->
-  <div class="history-section">
-    <div class="history-title">Recent Scans</div>
-    <div class="history-list" id="historyList">
-      <div class="history-item" style="color:#555;justify-content:center;">No scans yet</div>
+    <div class="history-section">
+      <div class="history-title">Recent Scans</div>
+      <div class="history-list" id="historyList">
+        <div class="history-item" style="color:#555;justify-content:center;">No scans yet</div>
+      </div>
     </div>
   </div>
 
@@ -518,11 +552,16 @@
 
     const webAppURL = "https://script.google.com/macros/s/AKfycbwaoKsR6Fpm7y5nepY9LYJVioV-Zp9FORtztmE63sU24BueUVI1O1AuuCUlla8Ne5_pfA/exec";
 
-    let scanTotal = 0;
+    /* Load persistent counts */
+    let scanTotal = parseInt(localStorage.getItem("tt26_scan_count") || "0", 10);
+    let entryTotal = parseInt(localStorage.getItem("tt26_entry_count") || "0", 10);
     let lastScannedId = "";
     let lastScanTime = 0;
 
-    /* ── Vibrate ── */
+    document.getElementById("scanCount").textContent = scanTotal;
+    document.getElementById("entryCount").textContent = entryTotal;
+
+    /* Vibrate */
     function vibrate(type) {
       if (navigator.vibrate) {
         if (type === "valid") navigator.vibrate([100, 50, 100]);
@@ -530,8 +569,8 @@
       }
     }
 
-    /* ── Play Sound ── */
-    function playBeep(type) {
+    /* Beep — only for invalid scans */
+    function playBeep() {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = ctx.createOscillator();
@@ -539,20 +578,15 @@
         osc.connect(gain);
         gain.connect(ctx.destination);
         gain.gain.value = 0.3;
-        if (type === "valid") {
-          osc.frequency.value = 800;
-          osc.start(); osc.stop(ctx.currentTime + 0.15);
-        } else {
-          osc.frequency.value = 300;
-          osc.start(); osc.stop(ctx.currentTime + 0.4);
-        }
+        osc.frequency.value = 300;
+        osc.start();
+        osc.stop(ctx.currentTime + 0.4);
       } catch (e) { }
     }
 
-    /* ── Add to History ── */
+    /* Add to History */
     function addHistory(id, status) {
       const list = document.getElementById("historyList");
-      // Clear "no scans" placeholder
       if (list.querySelector("[style]")) list.innerHTML = "";
 
       const statusClass = status === "VALID" ? "status-valid"
@@ -567,20 +601,18 @@
       item.innerHTML = `<span class="id">${id}</span><span class="${statusClass}">${statusLabel}</span>`;
       list.prepend(item);
 
-      // Keep only last 20
       while (list.children.length > 20) list.removeChild(list.lastChild);
     }
 
-    /* ── On Scan ── */
+    /* On Scan */
     function onScanSuccess(decodedText) {
-
-      // Prevent duplicate rapid scans of same QR
       const now = Date.now();
       if (decodedText === lastScannedId && (now - lastScanTime) < 3000) return;
       lastScannedId = decodedText;
       lastScanTime = now;
 
       scanTotal++;
+      localStorage.setItem("tt26_scan_count", scanTotal);
       document.getElementById("scanCount").textContent = scanTotal;
 
       const card = document.getElementById("resultCard");
@@ -588,7 +620,6 @@
       const sub = document.getElementById("resultSub");
       const icon = document.querySelector(".result-icon");
 
-      // Show loading state
       card.className = "result-card waiting";
       icon.textContent = "⏳";
       text.textContent = "Verifying...";
@@ -598,7 +629,9 @@
         .then(res => res.json())
         .then(data => {
 
-          document.getElementById("entryCount").textContent = data.count;
+          entryTotal = data.count;
+          localStorage.setItem("tt26_entry_count", entryTotal);
+          document.getElementById("entryCount").textContent = entryTotal;
 
           if (data.status === "VALID") {
             card.className = "result-card valid";
@@ -606,7 +639,6 @@
             text.textContent = "VALID ENTRY";
             sub.textContent = "Welcome! — " + decodedText;
             vibrate("valid");
-            playBeep("valid");
           }
           else if (data.status === "ALREADY_ENTERED") {
             card.className = "result-card already";
@@ -614,7 +646,6 @@
             text.textContent = "ALREADY ENTERED";
             sub.textContent = "This participant has already entered";
             vibrate("invalid");
-            playBeep("invalid");
           }
           else if (data.status === "NOT_APPROVED") {
             card.className = "result-card invalid";
@@ -622,7 +653,7 @@
             text.textContent = "NOT APPROVED";
             sub.textContent = "Payment not yet verified";
             vibrate("invalid");
-            playBeep("invalid");
+            playBeep();
           }
           else {
             card.className = "result-card invalid";
@@ -630,12 +661,11 @@
             text.textContent = "INVALID QR CODE";
             sub.textContent = "This QR is not recognized";
             vibrate("invalid");
-            playBeep("invalid");
+            playBeep();
           }
 
           addHistory(decodedText, data.status);
 
-          // Auto-reset after 4 seconds
           setTimeout(() => {
             card.className = "result-card waiting";
             icon.textContent = "📷";
@@ -652,7 +682,7 @@
         });
     }
 
-    /* ── Initialize Scanner ── */
+    /* Initialize Scanner */
     const scanner = new Html5QrcodeScanner(
       "reader",
       {
