@@ -552,9 +552,11 @@
 
     const webAppURL = "https://script.google.com/macros/s/AKfycbwaoKsR6Fpm7y5nepY9LYJVioV-Zp9FORtztmE63sU24BueUVI1O1AuuCUlla8Ne5_pfA/exec";
 
-    /* Load persistent counts */
-    let scanTotal = parseInt(localStorage.getItem("tt26_scan_count") || "0", 10);
-    let entryTotal = parseInt(localStorage.getItem("tt26_entry_count") || "0", 10);
+    /* Registration Day — clear old testing data, fresh start */
+    localStorage.removeItem("tt26_scan_count");
+    localStorage.removeItem("tt26_entry_count");
+    let scanTotal = 0;
+    let entryTotal = 0;
     let lastScannedId = "";
     let lastScanTime = 0;
 
