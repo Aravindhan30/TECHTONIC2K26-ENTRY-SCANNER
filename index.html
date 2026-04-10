@@ -1,705 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=no">
-  <title>TECH TONIC 2K26 - Gate Scanner</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Poppins:wght@300;400;600;700&display=swap"
-    rel="stylesheet">
-  <script src="https://unpkg.com/html5-qrcode"></script>
-
-  <style>
-    :root {
-      --gold: #d4af37;
-      --dark: #0a0a0a;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background: #000;
-      color: #fff;
-      font-family: 'Poppins', sans-serif;
-      min-height: 100vh;
-      min-height: 100dvh;
-      position: relative;
-      overflow-x: hidden;
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background:
-        radial-gradient(ellipse at 20% 50%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
-        linear-gradient(135deg, #030305 0%, #0a0a12 25%, #0d0b14 50%, #0a0a0f 75%, #050507 100%);
-      z-index: -2;
-      animation: bgShift 20s ease-in-out infinite alternate;
-    }
-
-    @keyframes bgShift {
-      0% {
-        background-position: 0% 0%, 100% 0%, 50% 100%, 0% 0%;
-      }
-
-      100% {
-        background-position: 100% 100%, 0% 100%, 50% 0%, 100% 100%;
-      }
-    }
-
-    .header {
-      background: linear-gradient(135deg, #111 0%, #0a0a0a 100%);
-      border-bottom: 2px solid var(--gold);
-      padding: 18px 20px 14px;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .header h1 {
-      font-family: 'Cinzel', serif;
-      font-size: clamp(14px, 4vw, 22px);
-      color: var(--gold);
-      letter-spacing: 2px;
-      margin-bottom: 3px;
-    }
-
-    .header .sub {
-      font-size: 11px;
-      color: #888;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .stats-row {
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      padding: 15px;
-    }
-
-    .stat-box {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(212, 175, 55, 0.15);
-      border-radius: 14px;
-      padding: 14px 22px;
-      text-align: center;
-      min-width: 110px;
-    }
-
-    .stat-box .num {
-      font-size: 30px;
-      font-weight: 700;
-      color: var(--gold);
-      line-height: 1;
-    }
-
-    .stat-box .lbl {
-      font-size: 10px;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-top: 3px;
-    }
-
-    .scanner-wrapper {
-      padding: 0 15px;
-      margin-bottom: 15px;
-    }
-
-    .scanner-frame {
-      background: rgba(255, 255, 255, 0.03);
-      border: 2px solid rgba(212, 175, 55, 0.2);
-      border-radius: 20px;
-      overflow: hidden;
-      position: relative;
-    }
-
-    #reader {
-      width: 100%;
-      min-height: 280px;
-    }
-
-    #reader video {
-      border-radius: 18px;
-    }
-
-    #reader__scan_region {
-      border-radius: 18px;
-    }
-
-    #reader__dashboard {
-      background: transparent !important;
-    }
-
-    #reader__dashboard_section {
-      color: #aaa !important;
-    }
-
-    #reader__dashboard_section_csr button,
-    #reader__dashboard_section_fsr button {
-      background: var(--gold) !important;
-      color: #000 !important;
-      border: none !important;
-      border-radius: 10px !important;
-      padding: 10px 20px !important;
-      font-family: 'Poppins', sans-serif !important;
-      font-weight: 600 !important;
-      cursor: pointer !important;
-    }
-
-    #reader__dashboard_section_csr select,
-    #reader__dashboard_section_fsr select {
-      background: #1a1a1a !important;
-      color: #fff !important;
-      border: 1px solid rgba(212, 175, 55, 0.3) !important;
-      border-radius: 8px !important;
-      padding: 8px !important;
-      font-family: 'Poppins', sans-serif !important;
-    }
-
-    #reader__dashboard_section_csr span,
-    #reader__dashboard_section_fsr span {
-      color: #aaa !important;
-    }
-
-    .result-area {
-      padding: 0 15px 25px;
-    }
-
-    .result-card {
-      border-radius: 18px;
-      padding: 25px;
-      text-align: center;
-      transition: all 0.4s ease;
-      min-height: 100px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .result-card.waiting {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px dashed rgba(255, 255, 255, 0.1);
-    }
-
-    .result-card.valid {
-      background: rgba(34, 197, 94, 0.1);
-      border: 2px solid #22c55e;
-      animation: pulseGreen 1s ease;
-    }
-
-    .result-card.invalid {
-      background: rgba(239, 68, 68, 0.1);
-      border: 2px solid #ef4444;
-      animation: pulseRed 0.5s ease;
-    }
-
-    .result-card.already {
-      background: rgba(245, 158, 11, 0.1);
-      border: 2px solid #f59e0b;
-      animation: pulseOrange 0.5s ease;
-    }
-
-    .result-icon {
-      font-size: 48px;
-      margin-bottom: 8px;
-      line-height: 1;
-    }
-
-    .result-text {
-      font-size: clamp(18px, 5vw, 26px);
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    .result-sub {
-      font-size: 13px;
-      color: #888;
-      margin-top: 6px;
-    }
-
-    .result-card.valid .result-text {
-      color: #22c55e;
-    }
-
-    .result-card.invalid .result-text {
-      color: #ef4444;
-    }
-
-    .result-card.already .result-text {
-      color: #f59e0b;
-    }
-
-    .result-card.waiting .result-text {
-      color: #555;
-    }
-
-    .result-card.waiting .result-icon {
-      opacity: 0.3;
-    }
-
-    @keyframes pulseGreen {
-      0% {
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
-      }
-
-      70% {
-        box-shadow: 0 0 0 20px rgba(34, 197, 94, 0);
-      }
-
-      100% {
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
-      }
-    }
-
-    @keyframes pulseRed {
-      0% {
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
-      }
-
-      70% {
-        box-shadow: 0 0 0 20px rgba(239, 68, 68, 0);
-      }
-
-      100% {
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-      }
-    }
-
-    @keyframes pulseOrange {
-      0% {
-        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
-      }
-
-      70% {
-        box-shadow: 0 0 0 20px rgba(245, 158, 11, 0);
-      }
-
-      100% {
-        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
-      }
-    }
-
-    .history-section {
-      padding: 0 15px 30px;
-    }
-
-    .history-title {
-      font-size: 13px;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 10px;
-      padding-left: 5px;
-    }
-
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-
-    .history-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 14px;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 10px;
-      font-size: 12px;
-    }
-
-    .history-item .id {
-      color: #aaa;
-      font-family: monospace;
-    }
-
-    .history-item .status-valid {
-      color: #22c55e;
-      font-weight: 600;
-    }
-
-    .history-item .status-invalid {
-      color: #ef4444;
-      font-weight: 600;
-    }
-
-    .history-item .status-already {
-      color: #f59e0b;
-      font-weight: 600;
-    }
-
-    /* Desktop / Laptop layout */
-    @media (min-width: 768px) {
-      .scanner-wrapper {
-        max-width: 500px;
-        margin: 0 auto 15px;
-      }
-
-      .main-content {
-        display: flex;
-        gap: 20px;
-        padding: 0 20px;
-        max-width: 1000px;
-        margin: 0 auto;
-      }
-
-      .main-content .result-area {
-        flex: 1;
-        padding: 0;
-      }
-
-      .main-content .history-section {
-        flex: 1;
-        padding: 0;
-      }
-
-      .stats-row {
-        gap: 20px;
-      }
-
-      .stat-box {
-        min-width: 140px;
-        padding: 18px 28px;
-      }
-
-      .stat-box .num {
-        font-size: 36px;
-      }
-
-      #reader {
-        min-height: 350px;
-      }
-    }
-
-    /* Mobile */
-    @media (max-width: 480px) {
-      .header {
-        padding: 12px 15px 10px;
-      }
-
-      .header h1 {
-        font-size: clamp(12px, 3.5vw, 18px);
-      }
-
-      .stats-row {
-        padding: 10px 12px;
-        gap: 10px;
-      }
-
-      .stat-box {
-        padding: 10px 15px;
-        min-width: 90px;
-        border-radius: 12px;
-      }
-
-      .stat-box .num {
-        font-size: 24px;
-      }
-
-      .scanner-wrapper {
-        padding: 0 12px;
-      }
-
-      .scanner-frame {
-        border-radius: 16px;
-      }
-
-      #reader {
-        min-height: 250px;
-      }
-
-      #reader__dashboard_section_csr button,
-      #reader__dashboard_section_fsr button {
-        padding: 8px 16px !important;
-        font-size: 13px !important;
-      }
-
-      #reader__dashboard_section_csr select,
-      #reader__dashboard_section_fsr select {
-        padding: 6px !important;
-        font-size: 13px !important;
-      }
-
-      .result-area {
-        padding: 0 12px 20px;
-      }
-
-      .result-card {
-        padding: 18px 14px;
-        border-radius: 14px;
-      }
-
-      .result-icon {
-        font-size: 38px;
-      }
-
-      .result-text {
-        font-size: clamp(16px, 4.5vw, 22px);
-      }
-
-      .result-sub {
-        font-size: 11px;
-      }
-
-      .history-section {
-        padding: 0 12px 25px;
-      }
-
-      .history-item {
-        padding: 8px 12px;
-        font-size: 11px;
-      }
-
-      .history-item .id {
-        font-size: 10px;
-        max-width: 55%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-    }
-
-    @media (max-width: 360px) {
-      .header h1 {
-        font-size: 12px;
-      }
-
-      .stat-box {
-        min-width: 80px;
-        padding: 8px 12px;
-      }
-
-      .stat-box .num {
-        font-size: 20px;
-      }
-
-      #reader {
-        min-height: 220px;
-      }
-
-      .result-icon {
-        font-size: 32px;
-      }
-
-      .result-text {
-        font-size: 16px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTICCE-2K26 | Certificate Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Great+Vibes&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
-  <div class="header">
-    <h1>TECH TONIC 2K26</h1>
-    <div class="sub">🔒 Gate Entry Scanner</div>
-  </div>
-
-  <div class="stats-row">
-    <div class="stat-box">
-      <div class="num" id="entryCount">0</div>
-      <div class="lbl">Entered</div>
-    </div>
-    <div class="stat-box">
-      <div class="num" id="scanCount">0</div>
-      <div class="lbl">Scanned</div>
-    </div>
-  </div>
-
-  <div class="scanner-wrapper">
-    <div class="scanner-frame">
-      <div id="reader"></div>
-    </div>
-  </div>
-
-  <div class="main-content">
-    <div class="result-area">
-      <div class="result-card waiting" id="resultCard">
-        <div class="result-icon">📷</div>
-        <div class="result-text" id="resultText">Waiting for Scan...</div>
-        <div class="result-sub" id="resultSub">Point the camera at a QR code</div>
-      </div>
+    <!-- Background -->
+    <div class="bg-mesh">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
     </div>
 
-    <div class="history-section">
-      <div class="history-title">Recent Scans</div>
-      <div class="history-list" id="historyList">
-        <div class="history-item" style="color:#555;justify-content:center;">No scans yet</div>
-      </div>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="header-brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>Certificate Generator</h1>
+                    <p>RTICCE-2K26 • Automated Batch Processing</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-ghost" id="btn-demo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <polygon points="5 3 19 12 5 21 5 3"/>
+                    </svg>
+                    Load Demo Data
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="app-main">
+        <!-- Step 1: Upload Section -->
+        <section class="upload-section" id="upload-section">
+            <div class="section-header">
+                <span class="step-badge">1</span>
+                <div>
+                    <h2>Upload Your Data</h2>
+                    <p>Upload your Excel file with participant details and their photos</p>
+                </div>
+            </div>
+
+            <div class="upload-grid">
+                <!-- Excel Upload -->
+                <div class="upload-card" id="excel-drop-zone">
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                        </svg>
+                    </div>
+                    <h3>Excel File (.xlsx / .xls)</h3>
+                    <p>Drag & drop or click to browse</p>
+                    <p class="upload-hint">Columns: Name, College, Paper Title, Photo Filename</p>
+                    <input type="file" id="excel-input" accept=".xlsx,.xls,.csv" hidden>
+                    <div class="upload-status" id="excel-status"></div>
+                </div>
+
+                <!-- Photos Upload -->
+                <div class="upload-card" id="photos-drop-zone">
+                    <div class="upload-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                    </div>
+                    <h3>Participant Photos</h3>
+                    <p>Select all photos from folder</p>
+                    <p class="upload-hint">Filenames should match Excel "Photo" column</p>
+                    <input type="file" id="photos-input" accept="image/*" multiple hidden>
+                    <div class="upload-status" id="photos-status"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 2: Data Preview -->
+        <section class="data-section hidden" id="data-section">
+            <div class="section-header">
+                <span class="step-badge">2</span>
+                <div>
+                    <h2>Participant Data</h2>
+                    <p id="data-count">0 participants loaded</p>
+                </div>
+                <button class="btn btn-primary" id="btn-generate">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    Generate All Certificates
+                </button>
+            </div>
+            <div class="table-wrapper">
+                <table id="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Photo</th>
+                            <th>Name</th>
+                            <th>College</th>
+                            <th>Paper Title</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="data-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Step 3: Certificate Preview & Download -->
+        <section class="preview-section hidden" id="preview-section">
+            <div class="section-header">
+                <span class="step-badge">3</span>
+                <div>
+                    <h2>Certificate Preview</h2>
+                    <p>Review and download generated certificates</p>
+                </div>
+                <button class="btn btn-accent" id="btn-download-all">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download All as ZIP
+                </button>
+            </div>
+            <div class="certificate-grid" id="certificate-grid"></div>
+        </section>
+    </main>
+
+    <!-- Certificate Render Canvas (Hidden) -->
+    <div id="cert-render-area" style="position:absolute; left:-9999px; top:-9999px;">
+        <canvas id="cert-canvas" width="1600" height="1130"></canvas>
     </div>
-  </div>
 
-  <script>
+    <!-- Fullscreen Preview Modal -->
+    <div class="modal-overlay hidden" id="preview-modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+            <img id="modal-img" src="" alt="Certificate Preview">
+            <div class="modal-actions">
+                <button class="btn btn-primary" id="modal-download">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Download Certificate
+                </button>
+            </div>
+        </div>
+    </div>
 
-    const webAppURL = "https://script.google.com/macros/s/AKfycbwaoKsR6Fpm7y5nepY9LYJVioV-Zp9FORtztmE63sU24BueUVI1O1AuuCUlla8Ne5_pfA/exec";
+    <!-- Toast -->
+    <div class="toast hidden" id="toast">
+        <span id="toast-msg"></span>
+    </div>
 
-    /* Registration Day — clear old testing data, fresh start */
-    localStorage.removeItem("tt26_scan_count");
-    localStorage.removeItem("tt26_entry_count");
-    let scanTotal = 0;
-    let entryTotal = 0;
-    let lastScannedId = "";
-    let lastScanTime = 0;
+    <!-- Progress Overlay -->
+    <div class="progress-overlay hidden" id="progress-overlay">
+        <div class="progress-card">
+            <div class="progress-spinner"></div>
+            <h3 id="progress-title">Generating Certificates...</h3>
+            <div class="progress-bar-track">
+                <div class="progress-bar-fill" id="progress-bar"></div>
+            </div>
+            <p id="progress-text">0 / 0</p>
+        </div>
+    </div>
 
-    document.getElementById("scanCount").textContent = scanTotal;
-    document.getElementById("entryCount").textContent = entryTotal;
-
-    /* Vibrate */
-    function vibrate(type) {
-      if (navigator.vibrate) {
-        if (type === "valid") navigator.vibrate([100, 50, 100]);
-        else navigator.vibrate([300, 100, 300]);
-      }
-    }
-
-    /* Beep — only for invalid scans */
-    function playBeep() {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        gain.gain.value = 0.3;
-        osc.frequency.value = 300;
-        osc.start();
-        osc.stop(ctx.currentTime + 0.4);
-      } catch (e) { }
-    }
-
-    /* Add to History */
-    function addHistory(id, status) {
-      const list = document.getElementById("historyList");
-      if (list.querySelector("[style]")) list.innerHTML = "";
-
-      const statusClass = status === "VALID" ? "status-valid"
-        : status === "ALREADY_ENTERED" ? "status-already" : "status-invalid";
-
-      const statusLabel = status === "VALID" ? "✅ VALID"
-        : status === "ALREADY_ENTERED" ? "⚠ DUPLICATE"
-          : status === "NOT_APPROVED" ? "🔒 NOT APPROVED" : "❌ INVALID";
-
-      const item = document.createElement("div");
-      item.className = "history-item";
-      item.innerHTML = `<span class="id">${id}</span><span class="${statusClass}">${statusLabel}</span>`;
-      list.prepend(item);
-
-      while (list.children.length > 20) list.removeChild(list.lastChild);
-    }
-
-    /* On Scan */
-    function onScanSuccess(decodedText) {
-      const now = Date.now();
-      if (decodedText === lastScannedId && (now - lastScanTime) < 3000) return;
-      lastScannedId = decodedText;
-      lastScanTime = now;
-
-      scanTotal++;
-      localStorage.setItem("tt26_scan_count", scanTotal);
-      document.getElementById("scanCount").textContent = scanTotal;
-
-      const card = document.getElementById("resultCard");
-      const text = document.getElementById("resultText");
-      const sub = document.getElementById("resultSub");
-      const icon = document.querySelector(".result-icon");
-
-      card.className = "result-card waiting";
-      icon.textContent = "⏳";
-      text.textContent = "Verifying...";
-      sub.textContent = decodedText;
-
-      fetch(webAppURL + "?id=" + decodedText)
-        .then(res => res.json())
-        .then(data => {
-
-          entryTotal = data.count;
-          localStorage.setItem("tt26_entry_count", entryTotal);
-          document.getElementById("entryCount").textContent = entryTotal;
-
-          if (data.status === "VALID") {
-            card.className = "result-card valid";
-            icon.textContent = "✅";
-            text.textContent = "VALID ENTRY";
-            sub.textContent = "Welcome! — " + decodedText;
-            vibrate("valid");
-          }
-          else if (data.status === "ALREADY_ENTERED") {
-            card.className = "result-card already";
-            icon.textContent = "⚠️";
-            text.textContent = "ALREADY ENTERED";
-            sub.textContent = "This participant has already entered";
-            vibrate("invalid");
-          }
-          else if (data.status === "NOT_APPROVED") {
-            card.className = "result-card invalid";
-            icon.textContent = "🔒";
-            text.textContent = "NOT APPROVED";
-            sub.textContent = "Payment not yet verified";
-            vibrate("invalid");
-            playBeep();
-          }
-          else {
-            card.className = "result-card invalid";
-            icon.textContent = "❌";
-            text.textContent = "INVALID QR CODE";
-            sub.textContent = "This QR is not recognized";
-            vibrate("invalid");
-            playBeep();
-          }
-
-          addHistory(decodedText, data.status);
-
-          setTimeout(() => {
-            card.className = "result-card waiting";
-            icon.textContent = "📷";
-            text.textContent = "Ready to Scan";
-            sub.textContent = "Point the camera at a QR code";
-          }, 4000);
-
-        })
-        .catch(() => {
-          card.className = "result-card invalid";
-          icon.textContent = "⚡";
-          text.textContent = "CONNECTION ERROR";
-          sub.textContent = "Check your internet connection";
-        });
-    }
-
-    /* Initialize Scanner */
-    const scanner = new Html5QrcodeScanner(
-      "reader",
-      {
-        fps: 10,
-        qrbox: { width: 220, height: 220 },
-        rememberLastUsedCamera: true,
-        showTorchButtonIfSupported: true
-      },
-      false
-    );
-
-    scanner.render(onScanSuccess);
-
-  </script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="app.js"></script>
 </body>
-
 </html>
